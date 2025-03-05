@@ -23,10 +23,10 @@ propose a multi-modal framework as a baseline to achieve the temporal prediction
    ```
 
 2. Download the dataset called basic_view_pn.csv and the video cover image compression package called img_yt.zip, unzip them and save them in the data_source folder.
-  The downloaded Baidu network disk link is:
+    The downloaded google driver disk link is:
 
   ```
-  
+  https://drive.google.com/drive/folders/1PmUrmfCAyH-jzUP-BSk0KeEpx19nOaBM?usp=sharing
   ```
 
 3. Set the file path of the dataset in the parser of main.py in the project code，and in smp_model.py, youtube_lstm3 is the model mentioned in our paper, and the paths of bert_model and token need to be set by yourself. In youtube_data_lstm in smp_data.py, set whether to use EP and the number of days you want to predict. **Note that the seq_len here needs to be consistent with the seq_len in main.py.**Then you can run this project:
