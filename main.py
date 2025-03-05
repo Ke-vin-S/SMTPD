@@ -1,5 +1,5 @@
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 import argparse
 import torch
 from torch import nn, optim
@@ -12,7 +12,6 @@ from tools import *
 from transformers import logging
 import warnings
 import random
-#from cb import *
 import logging
 import builtins
 import torch.nn.functional as F
@@ -28,21 +27,21 @@ parser.add_argument('--num_workers', type=int, default=4)
 parser.add_argument('--epochs', type=int, default=40)
 parser.add_argument('--lr', default=1e-2, type=float)
 
-parser.add_argument('--images_dir', type=str, default='/home/xyj/SMP/data_source/img_yt')
+parser.add_argument('--images_dir', type=str, default='../data_source/img_yt')      # Set the path of images.
 parser.add_argument('--gt_path', type=str, default="0")
-parser.add_argument('--data_files', type=str, default="/home/xyj/SMP/data_source/basic_view_pn.csv")
+parser.add_argument('--data_files', type=str, default="../data_source/basic_view_pn.csv")  # Set the path of data set.
 
-parser.add_argument('--seq_len', type=int, default=29)
+parser.add_argument('--seq_len', type=int, default=29) # Set the count of days you want to predict.
 
 parser.add_argument('--ckpt_path', type=str, default="ckpt_with_lai")
-# parser.add_argument('--ckpt_name', type=str, default='best-39-1.6959.pth')
-parser.add_argument('--result_file', type=str, default='all_result.csv')
+
+parser.add_argument('--result_file', type=str, default='all_result.csv') #Set the file to save the results
 parser.add_argument('--write', type=bool, default=True)
 
-parser.add_argument('--train', type=bool, default=False)
+parser.add_argument('--train', type=bool, default=False)  
 parser.add_argument('--test', type=bool, default=False)
 parser.add_argument('--K_fold', type=int,default=0)
-parser.add_argument('--use_mlp', type=bool, default=False)
+parser.add_argument('--use_mlp', type=bool, default=False) 
 
 class CustomLoss(nn.Module):
     def __init__(self, initial_lambda1=1.0, initial_lambda2=1.0, initial_weight=1, epsilon=1e-6, base_loss=nn.SmoothL1Loss(0.1)):
@@ -57,39 +56,39 @@ class CustomLoss(nn.Module):
         self.peak_weight = initial_weight
 
     def update_weights(self, current_step, total_steps):
-        # 使用余弦退火策略更新权重
+        # Update weights using cosine annealing strategy
         self.lambda1 = self.initial_lambda1 * (0.5 * (1 + torch.cos(torch.tensor(current_step / total_steps * 3.141592653589793))))
         self.lambda2 = self.initial_lambda2 * (0.5 * (1 + torch.cos(torch.tensor(current_step / total_steps * 3.141592653589793))))
         self.peak_weight = self.initial_weight * (0.5 * (1 + torch.cos(torch.tensor(current_step / total_steps * 3.141592653589793))))
 
     def forward(self, outputs, targets, current_step, total_steps):
-        # 更新权重
+        # Update weights
         self.update_weights(current_step, total_steps)
 
-        # 基础损失
+        # basical loss
         base_loss = self.base_loss(outputs, targets)
 
-        # 检测峰值并创建 one-hot 向量
+        # Detect peaks and create one-hot vectors
         peak_indices_outputs = torch.argmax(outputs, dim=1)
         peak_indices_targets = torch.argmax(targets, dim=1)
         
         one_hot_outputs = F.one_hot(peak_indices_outputs, num_classes=outputs.size(1)).float()
         one_hot_targets = F.one_hot(peak_indices_targets, num_classes=targets.size(1)).float()
 
-        # 计算 L1 损失
+        # Calculating L1 loss
         peak_loss = F.l1_loss(one_hot_outputs, one_hot_targets)
 
-        # 计算一阶导数
+        # Calculate the first derivative
         first_derivative = outputs[:, 1:] - outputs[:, :-1]
         target_first_derivative = targets[:, 1:] - targets[:, :-1]
         first_derivative_loss = self.base_loss(first_derivative, target_first_derivative)
 
-        # 计算二阶导数
+        # Calculate the second derivative
         second_derivative = first_derivative[:, 1:] - first_derivative[:, :-1]
         target_second_derivative = target_first_derivative[:, 1:] - target_first_derivative[:, :-1]
         second_derivative_loss = self.base_loss(second_derivative, target_second_derivative)
 
-        # 添加拉普拉斯平滑项
+        # Adding Laplace smoothing
         laplacian_smoothing = self.epsilon * (
             torch.sum(torch.abs(first_derivative)) + torch.sum(torch.abs(second_derivative))
         )
@@ -97,7 +96,8 @@ class CustomLoss(nn.Module):
         l2_reg = torch.tensor(0.0).to(outputs.device)
         for param in model.parameters():
             l2_reg += torch.norm(param)
-        # 计算总损失
+            
+        # Calculate the total loss
         total_loss = base_loss + self.peak_weight * peak_loss + \
                      self.lambda1 * first_derivative_loss + \
                      self.lambda2 * second_derivative_loss + \
@@ -118,41 +118,31 @@ def load_data(args, K, n):
     data_set = youtube_data_lstm(data_files, args.images_dir, args.gt_path)
     batch_size = args.batch_size
 
-    # 计算每个折的大小
+    # Calculate the size of each fold
     fold_size = len(data_set) // K
 
-    # 创建随机索引列表
+    # Create a list of random indices
     indices = list(range(len(data_set)))
-
-    #fold_size = 64
-    #
-    # # 创建随机索引列表
-    # indices = list(range(320))
+    
     random_generator.shuffle(indices)
 
-    # 计算当前折的验证集和测试集的索引范围
+    # Calculate the index range of the validation set and test set of the current fold
     val_start = n * fold_size
     train_start = (n + 1) * fold_size
 
-    # 指定测试集的索引
-    # specified_test_indices = [85,90,146,134,274,312,337,439,525,574]
-    # additional_test_indices = list(range(575, 629))  # 包含 545 到 603 的所有索引
-    # specified_test_indices += [idx for idx in additional_test_indices if idx < len(data_set)]
-
-
-    # 选择验证集的索引
+    # Select the index of the validation set
     val_indices = indices[val_start:train_start]
     test_indices = val_indices
 
-    # 训练集的索引就是剩下的部分
+    # The index of the training set is the rest
     train_indices = [i for i in indices if i not in val_indices]
 
-    # 根据索引创建子集
+    # Create a subset based on an index
     train_set = Subset(data_set, train_indices)
     val_set = Subset(data_set, val_indices)
     test_set = Subset(data_set, test_indices)
 
-    # 创建 DataLoader
+    # Create DataLoader
     train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True, num_workers=args.num_workers, drop_last=True)
     val_loader = DataLoader(val_set, batch_size=batch_size, shuffle=False, num_workers=args.num_workers, drop_last=True)
     test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False, num_workers=args.num_workers, drop_last=True)
@@ -330,7 +320,7 @@ if __name__ == '__main__':
         import glob
         # model_files = glob.glob(os.path.join(args.ckpt_path, str(args.K_fold) + "*.pth"))[0]
         # model_dict = torch.load(model_files)
-        model_files = os.path.join(args.ckpt_path, "/home/zhuwei/SMP/data_0410_30seq/ckpt_with_lai/4-20-1.6323.pth")
+        model_files = os.path.join(args.ckpt_path, "../ckpt_with_lai/K-epoch-mae.pth")   #set the path of the trained model you want to test.
         model_dict = torch.load(model_files)
         model.load_state_dict(model_dict)
         print('Loaded model ' + model_files)
