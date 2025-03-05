@@ -11,130 +11,10 @@ import numpy as np
 from torchvision import datasets, transforms, utils
 from scipy.stats import zscore
 
-class bili_data(Dataset):
-    def __init__(self, csv_file, root_dir, transform):
-        self.data = pd.read_csv(csv_file, header=None)
-        self.root_dir = root_dir
-        self.transform = transform
-
-        self.use_img = True  # False
-        self.text = True  # False#
-        self.num = True  # False
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx):
-        id = str(self.data.iloc[idx, 0])
-
-        if self.use_img:
-            img_name = os.path.join(self.root_dir, str(self.data.iloc[idx, 0]) + '.jpg')
-            try:
-                image = Image.open(img_name).convert("RGB")
-                image = self.transform(image)
-            except:
-                image = torch.zeros(3, 224, 224)
-                print('no img{}'.format(id))
-        else:
-            image = torch.zeros(3, 224, 224)
-
-        if self.text:
-            category = str(self.data.iloc[idx, 1])
-            title = str(self.data.iloc[idx, 2])
-
-        else:
-            category = '0'
-            title = '0'
-            print('no text{}'.format(id))
-
-        text = [category, title]
-
-        if self.num:
-            num = torch.from_numpy(self.data.iloc[idx, 3:11].values.astype(np.float32))
-        else:
-            num = torch.zeros(8)
-            print('no num{}'.format(id))
-        meta = num
-
-        label = torch.from_numpy(np.array(self.data.iloc[idx, -1])).float().view(1)
-
-        sample = {'img': image, 'meta': meta, 'id': id, 'label': label, 'text': text, 'category': category,
-                  'title': title}
-
-        return sample
-
-
-class bili_data_lstm(Dataset):
-    def __init__(self, csv_file, root_dir):
-        self.data = pd.read_csv(csv_file, header=None)
-        self.data.iloc[:, 9] = zscore(self.data.iloc[:, 9])
-
-        self.root_dir = root_dir
-        self.transform = transforms.Compose([transforms.Resize([224, 224]), transforms.ToTensor()])
-        self.use_img = True  # False
-        self.text = True  # False#
-        self.num = True  # False
-
-    def __len__(self):
-        return len(self.data)
-
-    def __getitem__(self, idx):
-        id = str(int(self.data.iloc[idx, 0]))
-        if self.use_img:
-            img_name = os.path.join(self.root_dir, str(int(self.data.iloc[idx, 0])) + '.jpg')
-            try:
-                image = Image.open(img_name).convert("RGB")
-                image = self.transform(image)
-            except:
-                image = torch.zeros(3, 224, 224)
-                # print('no img{}'.format(id))
-        else:
-            image = torch.zeros(3, 224, 224)
-
-        if self.text:
-            category = str(self.data.iloc[idx, 1])
-            # category = '0'
-            title = str(self.data.iloc[idx, 2])
-            # title = '0'
-
-        else:
-            category = '0'
-            title = '0'
-
-        text = [category, title]
-
-        if self.num:
-            num = torch.from_numpy(self.data.iloc[idx, 3:10].values.astype(np.float32))
-            num[1:-1] = 0
-        else:
-            num = torch.zeros(7)
-        meta = num
-
-        # label = torch.from_numpy(self.data.iloc[idx, 10: 40].values.astype(np.float32))
-        label_ = self.data.iloc[idx, 10: 40].values.astype(np.float32)
-        label = torch.from_numpy(label_)
-
-        # first = self.data.iloc[idx, 9].astype(np.float32)
-        # label_coef = torch.from_numpy(label_ / first)
-
-        # sample = {'img': image,
-        #           'text': text,
-        #           # 'profile_img': profile_img,
-        #           'meta': meta,
-        #           'id': id,
-        #           'label': label,
-        #           # 'label_coef': label_coef,
-        #           }
-        sample = {'img': image, 'meta': meta, 'id': id, 'label': label, 'text': text, 'category': category,
-                  'title': title}
-
-        return sample
-
 
 class youtube_data_lstm(Dataset):
     def __init__(self, csv_file, cover_dir, gt_path):
-        self.data = pd.read_csv(csv_file)
-        self.Hyfea = pd.read_csv("/home/zhuwei/SMP/1Ref/Hyfea/output0.csv")
+        self.data = pd.read_csv(csv_file)        
         # self.data=self.data.drop(columns=['Day 2'])
         self.cover_dir = cover_dir
         # self.profile_dir = profile_diree
@@ -146,8 +26,8 @@ class youtube_data_lstm(Dataset):
         self.textual_content = True  # False#
         self.numerical_content = True  # False
         self.categorical_content = True
-        self.p_i = 0
-        self.seq_len = 29
+        self.p_i = 0     #use the EP or not,0 is not use.
+        self.seq_len = 29   #The count of days you want to predict.
 
     def __len__(self):
         return len(self.data)
