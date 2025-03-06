@@ -19,7 +19,7 @@ propose a multi-modal framework as a baseline to achieve the temporal prediction
 1. Use git command to pull the project code:
 
    ```
-   gh repo clone zhuwei321/-SMTPD-A-New-Benchmark-for-Temporal-Prediction-of-Social-Media-Popularity-
+   gh repo clone zhuwei321/SMTPD
    ```
 
 2. Download the dataset called basic_view_pn.csv and the video cover image compression package called img_yt.zip, unzip them and save them in the data_source folder.
