@@ -1,6 +1,6 @@
 # **SMTPD：A New Benchmark for Temporal Prediction of Social Media Popularity** 
 
-<img src="D:\Users\Administrator\downloads\model.jpg" style="zoom: 25%;" />
+<img src="https://github.com/zhuwei321/SMTPD/blob/main/images/model.jpg" style="zoom: 25%;" />
 
 ## About
 
