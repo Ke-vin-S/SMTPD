@@ -12,7 +12,7 @@ propose a multi-modal framework as a baseline to achieve the temporal prediction
 - item Basing on existed methods, we innovate in both the selection of feature extractors and the construction of the temporal regression component, and suggest a baseline model which enables temporal popularity prediction to be conducted across multiple languages while aligning prediction times.
 - Exploring the popularity distribution and the correlation between popularity at different times. Based on these, We find the importance of early popularity for popularity prediction task, and point out that the key-point for predicting popularity is to accurately predict the early popularity.
 
-
+Paper link: https://arxiv.org/abs/2503.04446
 
 ## How to use？
 
