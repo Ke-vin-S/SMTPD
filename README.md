@@ -108,10 +108,9 @@ To ensure reproducible results and avoid dependency conflicts, we recommend sett
 
 ### Verify Installation
 
-After installation, verify that the key packages are working:
+After installation, verify that all dependencies are installed and compatible:
 ```bash
-python -c "import torch, transformers, pandas, numpy; print('All dependencies installed successfully!')"
-```
+pip check
 
 ### Deactivating Environment
 
