@@ -1,0 +1,16 @@
+catboost
+fasttext
+langid
+matplotlib
+numpy
+pandas
+pillow
+requests
+scikit-learn
+scipy
+seaborn
+threadpool
+torch
+torchvision
+tqdm
+transformers

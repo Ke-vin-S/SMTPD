@@ -50,3 +50,73 @@ If you want to test a trained model, please set the path of model in main.py. Th
 python main.py --test=True --K=0 
 ```
 
+## Environment Setup
+
+To ensure reproducible results and avoid dependency conflicts, we recommend setting up a virtual environment. Follow these steps:
+
+### Prerequisites
+
+- Python 3.8+ (tested with Python 3.12)
+- pip package manager
+
+### Option 1: Using Virtual Environment (Recommended)
+
+1. **Create a virtual environment:**
+   ```bash
+   python -m venv venv
+   ```
+
+2. **Activate the virtual environment:**
+   - On Linux/macOS:
+     ```bash
+     source venv/bin/activate
+     ```
+   - On Windows:
+     ```bash
+     venv\Scripts\activate
+     ```
+
+3. **Install dependencies:**
+   
+   For **exact reproducible environment** (recommended for research):
+   ```bash
+   pip install -r requirements.lock
+   ```
+   
+   For **latest compatible versions**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+### Option 2: Using Conda
+
+1. **Create a conda environment:**
+   ```bash
+   conda create -n smtpd python=3.12
+   conda activate smtpd
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   pip install -r requirements.lock
+   ```
+
+### Dependency Files Explanation
+
+- **`requirements.txt`**: Contains the main packages needed for the project (without version pins for flexibility)
+- **`requirements.lock`**: Contains exact versions of all packages and their dependencies (for reproducible builds)
+
+### Verify Installation
+
+After installation, verify that all dependencies are installed and compatible:
+```bash
+pip check
+
+### Deactivating Environment
+
+When you're done working with the project:
+```bash
+deactivate  # for virtual environment
+conda deactivate  # for conda environment
+```
+
