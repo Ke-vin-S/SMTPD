@@ -131,8 +131,8 @@ class youtube_MLP(nn.Module):
                            }
 
         # BERT-Multilingual
-        self.tokenizer = BertTokenizer.from_pretrained('../bert_multilingual')
-        self.bert_model = BertModel.from_pretrained('../bert_multilingual').to(device)
+        self.tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
+        self.bert_model = BertModel.from_pretrained('bert-base-multilingual-cased').to(device)
 
         self.conv = nn.Conv2d(self.text_num, 1, 1)
         self.conv.weight.data.normal_(1 / self.text_num, 0.01)
@@ -281,8 +281,8 @@ class youtube_lstm3(nn.Module):
                            }
 
         # BERT
-        self.tokenizer = BertTokenizer.from_pretrained('../bert_multilingual')
-        self.bert_model = BertModel.from_pretrained('../bert_multilingual').to(device)
+        self.tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
+        self.bert_model = BertModel.from_pretrained('bert-base-multilingual-cased').to(device)
 
         self.conv = nn.Conv2d(self.text_num, 1, 1)
         self.conv.weight.data.normal_(1 / self.text_num, 0.01)
@@ -520,8 +520,8 @@ class youtube_cb(nn.Module):
                            }
 
         # BERT-Multilingual
-        self.tokenizer = BertTokenizer.from_pretrained('../bert_multilingual')
-        self.bert_model = BertModel.from_pretrained('../bert_multilingual').to(device)
+        self.tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
+        self.bert_model = BertModel.from_pretrained('bert-base-multilingual-cased').to(device)
 
         self.conv = nn.Conv2d(self.text_num, 1, 1)
         self.conv.weight.data.normal_(1 / self.text_num, 0.01)
