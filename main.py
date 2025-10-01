@@ -1,4 +1,6 @@
 import os
+from pathlib import Path
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 import argparse
 import torch
@@ -38,7 +40,7 @@ parser.add_argument('--ckpt_path', type=str, default="ckpt_with_lai")
 parser.add_argument('--result_file', type=str, default='all_result.csv') #Set the file to save the results
 parser.add_argument('--write', type=bool, default=True)
 
-parser.add_argument('--train', type=bool, default=False)  
+parser.add_argument('--train', type=bool, default=True)
 parser.add_argument('--test', type=bool, default=False)
 parser.add_argument('--K_fold', type=int,default=0)
 parser.add_argument('--use_mlp', type=bool, default=False) 
@@ -150,14 +152,39 @@ def load_data(args, K, n):
     return train_loader, val_loader, test_loader
 
 
+def setup_logging(ckpt_path, K_fold, level=logging.INFO, format_string=None):
+    """Setup logging with directory creation
+
+    Args:
+        ckpt_path: Directory path for log file
+        K_fold: K-fold value for filename
+        level: Logging level (default: logging.INFO)
+        format_string: Custom format string for logs
+    """
+    log_path = Path(ckpt_path) / f'train_{K_fold}.log'
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if format_string is None:
+        format_string = '%(asctime)s - %(levelname)s - %(message)s'
+
+    logging.basicConfig(
+        filename=str(log_path),
+        level=level,
+        format=format_string,
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+
+    print(f"Logging to: {log_path}")
+    return log_path
+
 # train
 def train(args, model, train_loader, val_loader):
-    logging.basicConfig(filename=os.path.join(args.ckpt_path, f'train_{args.K_fold}.log'), level=logging.INFO)
+    setup_logging(args.ckpt_path, args.K_fold)
     loss_fn = CustomLoss()
     lr = args.lr
     weight_decay = 0.001
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=weight_decay)
-    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.2, patience=1, verbose=True, min_lr=0)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, factor=0.2, patience=1, min_lr=0)
     min_mae = 10
     total_steps = len(train_loader) * args.epochs
     for epoch in range(args.epochs):
