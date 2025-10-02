@@ -44,7 +44,7 @@ class youtube_data_lstm(Dataset):
             except:
                 cover_img = torch.zeros(3, 224, 224)
                 # profile_img = torch.zeros(3, 224, 224)
-                # print('no img:{}'.format(cover_img_name))
+                print('no img:{}'.format(cover_img_name))
         else:
             cover_img = torch.zeros(3, 224, 224)
             # profile_img = torch.zeros(3, 224, 224)
