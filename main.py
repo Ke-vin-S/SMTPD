@@ -283,8 +283,8 @@ def train(args, model, train_loader, val_loader):
         if mae < min_mae:
             min_mae=mae
             count=0
-            os.makedirs(args.ckpt_path, exist_ok=True)
             save_path = os.path.join(args.ckpt_path, f'{args.K_fold}-epoch{epoch+1}-mae{mae:.4f}.pth')
+            os.makedirs(os.path.dirname(save_path), exist_ok=True)
             torch.save(model.state_dict(), save_path)
             print('Saved model. Testing...')  # .state_dict()
         else:
